@@ -2,4 +2,4 @@
 server for MovieLingo App
 
 
-REST Api build in Java for MovieLingo WEB and Mobile App
+REST API build in Java for MovieLingo WEB and Mobile App
