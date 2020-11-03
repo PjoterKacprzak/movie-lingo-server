@@ -13,7 +13,7 @@ import java.util.Collections;
 import java.util.logging.Filter;
 
 @Configuration
-public class ApiConfiguration {
+public class ApiConfiguration  {
 
 
     @Bean

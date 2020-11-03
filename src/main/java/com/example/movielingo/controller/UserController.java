@@ -10,11 +10,20 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.persistence.NonUniqueResultException;
+import javax.xml.ws.Response;
 import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
+
+
+//TODO:create Password Encoder
 @RestController
 @RequestMapping("/api/user/")
 public class UserController {
+
+    private final static Logger logger = Logger.getLogger(UserController.class.getName());
 
     @Autowired
     private UserRepository userRepository;
@@ -29,40 +38,53 @@ public class UserController {
     @PostMapping(value = "/addUser",consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity addUser(@RequestBody User user)
     {
-        System.out.println(user);
-        System.out.println(user.getEmail());
-            if(userRepository.findByEmail(user.getEmail()) instanceof User) {
+        logger.log(Level.INFO, "Endpoint = /addUser - " + user.toString());
+        try {
+            if (!(userRepository.findByEmail(user.getEmail())instanceof User)) {
                 userRepository.save(user);
+                logger.log(Level.INFO,"Endpoint = /addUser - User saved");
                 return ResponseEntity.ok("User Saved");
             }
-            return ResponseEntity.badRequest().build();
+            logger.log(Level.INFO,"Endpoint = /addUser Cannot save new User");
+            return ResponseEntity.badRequest().body("Cannot save new User");
+        }
+        catch(NonUniqueResultException e)
+        {
+            logger.log(Level.INFO,"Endpoint = /addUser - Non unique result");
+            return ResponseEntity.badRequest().body("Email already registered");
+        }
     }
 
 
     @PostMapping(value = "/login",consumes = MediaType.APPLICATION_JSON_VALUE)
-    public String login(@RequestBody User user){
+    public ResponseEntity login(@RequestBody User user) {
+            User tempUser = userRepository.findByEmail(user.getEmail());
+            if(tempUser==null) {
+                logger.log(Level.INFO,"Endpoint = /login - User not found");
+                return ResponseEntity.badRequest().body("Bad Credentials"); }
 
+            String passwordInDb = tempUser.getPassword();
+            String passwordToCompare = user.getPassword();
+                if(passwordInDb.equals(passwordToCompare)) {
+                    long currentTimeMillis = System.currentTimeMillis();
+                    return ResponseEntity.ok().body(Jwts.builder()
+                            .setSubject(user.getEmail())
+                            .claim("roles", "user")
+                            .setIssuedAt(new Date(currentTimeMillis))
+                            .setExpiration(new Date(currentTimeMillis + 20000))
+                            .signWith(SignatureAlgorithm.HS256, "secret key")
+                            .compact());
+                }
+                else {
+                    logger.log(Level.INFO,"Endpoint = /login -Wrong password");
+                    return ResponseEntity.badRequest().body("Bad Credentials");
 
-        System.out.println(user);
-        System.out.println(user.getEmail());
-
-        String passwordInDb= userRepository.findByEmail(user.getEmail()).getPassword();
-        String passwordToCompare = user.getPassword();
-        if(userRepository.findByEmail(user.getEmail())instanceof User)
-        {
-            if(passwordInDb.equals(passwordToCompare))
-            {
-                long currentTimeMillis = System.currentTimeMillis();
-                return Jwts.builder()
-                        .setSubject(user.getEmail())
-                        .claim("roles","user")
-                        .setIssuedAt(new Date(currentTimeMillis))
-                        .setExpiration(new Date(currentTimeMillis+20000))
-                        .signWith(SignatureAlgorithm.HS256,"secret key")
-                        .compact();
-            }
+                }
         }
-        return "";
+    @RequestMapping("/authByToken")
+    public ResponseEntity authorizationByToken(@RequestParam  String token)
+    {
+        return null;
     }
 }
 
