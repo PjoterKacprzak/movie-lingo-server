@@ -6,6 +6,7 @@ import com.example.movielingo.respository.UserRepository;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -19,7 +20,10 @@ import java.util.logging.Logger;
 @Controller
 @RequestMapping("/")
 public class EntryController {
-
+    @Value("${email.username}")
+    private String emailUsername;
+    @Value("${email.password}")
+    private String emailPassword;
 
     private final static Logger logger = Logger.getLogger(UserController.class.getName());
 
