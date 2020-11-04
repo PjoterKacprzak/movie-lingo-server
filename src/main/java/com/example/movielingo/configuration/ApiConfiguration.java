@@ -13,7 +13,7 @@ import java.util.Collections;
 import java.util.logging.Filter;
 
 @Configuration
-public class ApiConfiguration  {
+public class ApiConfiguration{
 
 
     @Bean
@@ -38,10 +38,11 @@ public class ApiConfiguration  {
     }
 
     @Bean
-    public FilterRegistrationBean filterRegistrationBean(){
-        FilterRegistrationBean filterRegistrationBean = new FilterRegistrationBean();
+    public FilterRegistrationBean<JwtFilter> filterRegistrationBean(){
+        FilterRegistrationBean<JwtFilter> filterRegistrationBean = new FilterRegistrationBean<>();
+
+        filterRegistrationBean.addUrlPatterns(("/api/user/*"));
         filterRegistrationBean.setFilter(new JwtFilter());
-        filterRegistrationBean.setUrlPatterns(Collections.singleton("/hello/*"));
         return filterRegistrationBean;
     }
 
