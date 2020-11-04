@@ -8,6 +8,7 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import javax.persistence.NonUniqueResultException;
@@ -15,7 +16,7 @@ import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-@RestController
+@Controller
 @RequestMapping("/")
 public class EntryController {
 
@@ -46,7 +47,7 @@ public class EntryController {
                     .claim("password", user.getPassword())
                     .claim("roles", user.getRole())
                     .setIssuedAt(new Date(currentTimeMillis))
-                    .setExpiration(new Date(currentTimeMillis + 20000))
+                    .setExpiration(new Date(currentTimeMillis + 2629743))
                     .signWith(SignatureAlgorithm.HS256, "secret key")
                     .compact());
         } else {
@@ -56,24 +57,29 @@ public class EntryController {
         }
     }
 
-    @PostMapping(value = "/addUser",consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity addUser(@RequestBody User user)
-    {
+    @PostMapping(value = "/addUser", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity addUser(@RequestBody User user) {
         logger.log(Level.INFO, "Endpoint = /addUser - " + user.toString());
         try {
-            if (!(userRepository.findByEmail(user.getEmail())instanceof User)) {
+            if (!(userRepository.findByEmail(user.getEmail()) instanceof User)) {
                 userRepository.save(user);
-                logger.log(Level.INFO,"Endpoint = /addUser - User saved");
+                //  EmailService.sendVerificationMail(user.getEmail());
+                EmailService.sendVerificationMail(user.getEmail(),emailUsername,emailPassword);
+                logger.log(Level.INFO, "Endpoint = /addUser - User saved");
                 return ResponseEntity.ok("User Saved");
             }
-            logger.log(Level.INFO,"Endpoint = /addUser Cannot save new User");
+            logger.log(Level.INFO, "Endpoint = /addUser Cannot save new User");
             return ResponseEntity.badRequest().body("Cannot save new User");
-        }
-        catch(NonUniqueResultException e)
-        {
-            logger.log(Level.INFO,"Endpoint = /addUser - Non unique result");
+        } catch (NonUniqueResultException e) {
+            logger.log(Level.INFO, "Endpoint = /addUser - Non unique result");
             return ResponseEntity.badRequest().body("Email already registered");
         }
+    }
+
+
+    @RequestMapping("/account-confirmation/{email}")
+    public String accountConfirmation(@PathVariable String email) {
+        return "index.html";
     }
 
 }
