@@ -1,6 +1,7 @@
 package com.example.movielingo.controller;
 
 
+import com.example.movielingo.configuration.MyConstants;
 import com.example.movielingo.model.User;
 import com.example.movielingo.respository.UserRepository;
 import io.jsonwebtoken.Jwts;
@@ -20,10 +21,6 @@ import java.util.logging.Logger;
 @Controller
 @RequestMapping("/")
 public class EntryController {
-    @Value("${email.username}")
-    private String emailUsername;
-    @Value("${email.password}")
-    private String emailPassword;
 
     private final static Logger logger = Logger.getLogger(UserController.class.getName());
 
@@ -51,8 +48,8 @@ public class EntryController {
                     .claim("password", user.getPassword())
                     .claim("roles", user.getRole())
                     .setIssuedAt(new Date(currentTimeMillis))
-                    .setExpiration(new Date(currentTimeMillis + 2629743))
-                    .signWith(SignatureAlgorithm.HS256, "secret key")
+                    .setExpiration(new Date(currentTimeMillis + 2000))
+                    .signWith(SignatureAlgorithm.HS256, MyConstants.TOKEN_SIGN_KEY)
                     .compact());
         } else {
             logger.log(Level.INFO, "Endpoint = /login -Wrong password");
@@ -68,7 +65,7 @@ public class EntryController {
             if (!(userRepository.findByEmail(user.getEmail()) instanceof User)) {
                 userRepository.save(user);
                 //  EmailService.sendVerificationMail(user.getEmail());
-                EmailService.sendVerificationMail(user.getEmail(),emailUsername,emailPassword);
+                EmailService.sendVerificationMail(user.getEmail(),MyConstants.EMAIL_SERVICE_USERNAME,MyConstants.EMAIL_SERVICE_PASSWORD);
                 logger.log(Level.INFO, "Endpoint = /addUser - User saved");
                 return ResponseEntity.ok("User Saved");
             }

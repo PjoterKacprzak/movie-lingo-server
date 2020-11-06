@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.ServletRequest;
+import javax.servlet.http.HttpServletRequest;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -33,24 +34,39 @@ public class UserController {
     @PostMapping(value = "/authByToken",consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity authorizationByToken(ServletRequest servletRequest)
     {
-        Claims claims = (Claims) servletRequest.getAttribute("claims");
-        String passwordFromToken =  claims.get("password").toString();
-        String emailFromToken = claims.getSubject();
-        User tempUser = userRepository.findByEmail(emailFromToken);
-        if (tempUser == null) {
-            logger.log(Level.INFO, "Endpoint = /Auto-Login - User not found");
-            return ResponseEntity.badRequest().body("Bad Credentials");
+
+        HttpServletRequest httpServletRequest = (HttpServletRequest) servletRequest;
+
+        String token = httpServletRequest.getHeader("authorization");
+
+        if(!TokenController.isValid(token))
+        {
+            return ResponseEntity.badRequest().body("Token expired");
         }
-        String passwordInDb = tempUser.getPassword();
+        else{
 
-        if (passwordInDb.equals(passwordFromToken)) {
+            Claims claims = (Claims) servletRequest.getAttribute("claims");
+            String passwordFromToken =  claims.get("password").toString();
+            String emailFromToken = claims.getSubject();
+            User tempUser = userRepository.findByEmail(emailFromToken);
+            if (tempUser == null) {
+                logger.log(Level.INFO, "Endpoint = /Auto-Login - User not found");
+                return ResponseEntity.badRequest().body("Bad Credentials");
+            }
+            String passwordInDb = tempUser.getPassword();
 
-            return ResponseEntity.ok().body("Ok Credentials");
-        } else {
-            logger.log(Level.INFO, "Endpoint = /Auto-login -Wrong password");
-            return ResponseEntity.badRequest().body("Bad Credentials");
+            if (passwordInDb.equals(passwordFromToken)) {
+
+                return ResponseEntity.ok().body("Ok Credentials");
+            } else {
+                logger.log(Level.INFO, "Endpoint = /Auto-login -Wrong password");
+                return ResponseEntity.badRequest().body("Bad Credentials");
+
+            }
+
 
         }
+
 
     }
 
