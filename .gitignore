@@ -33,3 +33,4 @@ build/
 .vscode/
 /src/main/resources/application.properties
 /src/main/java/com/example/movielingo/controller/EmailService.java
+/src/main/java/com/example/movielingo/configuration/MyConstants.java
