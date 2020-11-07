@@ -9,8 +9,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import javax.sql.DataSource;
-import java.util.Collections;
-import java.util.logging.Filter;
 
 @Configuration
 public class ApiConfiguration{
@@ -21,19 +19,12 @@ public class ApiConfiguration{
         return new BCryptPasswordEncoder();
     }
 
-    @Value("${spring.datasource.url}")
-    private String dbUrl;
-    @Value("${spring.datasource.username}")
-    private String dbUsername;
-    @Value("${spring.datasource.password}")
-    private String dbPassword;
-
     @Bean
     public DataSource getDataSource() {
         DataSourceBuilder dataSourceBuilder = DataSourceBuilder.create();
-        dataSourceBuilder.url(dbUrl);
-        dataSourceBuilder.username(dbUsername);
-        dataSourceBuilder.password(dbPassword);
+        dataSourceBuilder.url(MyConstants.DATABASE_URL);
+        dataSourceBuilder.username(MyConstants.DATABASE_USERNAME);
+        dataSourceBuilder.password(MyConstants.DATABASE_PASSWORD);
         return dataSourceBuilder.build();
     }
 

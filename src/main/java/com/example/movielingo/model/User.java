@@ -41,21 +41,13 @@ public class User {
 
     private String role;
 
+    @Column(name = "is_active")
+    private boolean isActive;
 
-    @Override
-    public String toString() {
-        return "User{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", lastName='" + lastName + '\'' +
-                ", email='" + email + '\'' +
-                ", password='" + password + '\'' +
-                ", profilePhoto='" + profilePhoto + '\'' +
-                ", createdAt='" + createdAt + '\'' +
-                ", telephoneNumber='" + telephoneNumber + '\'' +
-                ", role='" + role + '\'' +
-                '}';
-    }
+    @Column(name = "login_name")
+    private String loginName;
+
+
 
     public Long getId() {
         return id;
@@ -127,5 +119,30 @@ public class User {
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    public boolean isActive() {return isActive; }
+
+    public void setActive(boolean active) { isActive = active; }
+
+    public String getLoginName() { return loginName; }
+
+    public void setLoginName(String loginName) { this.loginName = loginName; }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", lastName='" + lastName + '\'' +
+                ", email='" + email + '\'' +
+                ", password='" + password + '\'' +
+                ", profilePhoto='" + profilePhoto + '\'' +
+                ", createdAt='" + createdAt + '\'' +
+                ", telephoneNumber='" + telephoneNumber + '\'' +
+                ", role='" + role + '\'' +
+                ", isActive=" + isActive +
+                ", loginName='" + loginName + '\'' +
+                '}';
     }
 }

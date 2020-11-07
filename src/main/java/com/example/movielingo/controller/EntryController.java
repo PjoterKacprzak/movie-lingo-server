@@ -22,7 +22,7 @@ import java.util.logging.Logger;
 @RequestMapping("/")
 public class EntryController {
 
-    private final static Logger logger = Logger.getLogger(UserController.class.getName());
+    private final static Logger logger = Logger.getLogger(EntryController.class.getName());
 
     @Autowired
     private UserRepository userRepository;
@@ -62,15 +62,27 @@ public class EntryController {
     public ResponseEntity addUser(@RequestBody User user) {
         logger.log(Level.INFO, "Endpoint = /addUser - " + user.toString());
         try {
+            EmailService.sendVerificationMail(user.getEmail(),MyConstants.EMAIL_SERVICE_USERNAME,MyConstants.EMAIL_SERVICE_PASSWORD,user.getLoginName());
+
             if (!(userRepository.findByEmail(user.getEmail()) instanceof User)) {
-                userRepository.save(user);
-                //  EmailService.sendVerificationMail(user.getEmail());
-                EmailService.sendVerificationMail(user.getEmail(),MyConstants.EMAIL_SERVICE_USERNAME,MyConstants.EMAIL_SERVICE_PASSWORD);
-                logger.log(Level.INFO, "Endpoint = /addUser - User saved");
-                return ResponseEntity.ok("User Saved");
+                if(!(userRepository.findByLogin(user.getLoginName()) instanceof User))
+                    {
+                        userRepository.save(user);
+                       // EmailService.sendVerificationMail(user.getEmail(),MyConstants.EMAIL_SERVICE_USERNAME,MyConstants.EMAIL_SERVICE_PASSWORD,user.getLoginName());
+                        logger.log(Level.INFO, "Endpoint = /addUser - User saved");
+                        return ResponseEntity.ok("User Saved");
+                    }
+                        else {
+                            logger.log(Level.INFO, "Endpoint = /addUser - Login Used");
+                            return ResponseEntity.badRequest().body("Login Used"); }
+                        }
+            else
+            {
+                logger.log(Level.INFO, "Endpoint = /addUser - Email Used");
+                return ResponseEntity.badRequest().body("Email Used");
             }
-            logger.log(Level.INFO, "Endpoint = /addUser Cannot save new User");
-            return ResponseEntity.badRequest().body("Cannot save new User");
+//            logger.log(Level.INFO, "Endpoint = /addUser Cannot save new User");
+//            return ResponseEntity.badRequest().body("Cannot save new User");
         } catch (NonUniqueResultException e) {
             logger.log(Level.INFO, "Endpoint = /addUser - Non unique result");
             return ResponseEntity.badRequest().body("Email already registered");
@@ -80,6 +92,7 @@ public class EntryController {
 
     @RequestMapping("/account-confirmation/{email}")
     public String accountConfirmation(@PathVariable String email) {
+        userRepository.setAccountActive(email);
         return "index.html";
     }
 
