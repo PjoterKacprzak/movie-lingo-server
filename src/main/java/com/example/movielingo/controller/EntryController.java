@@ -58,6 +58,33 @@ public class EntryController {
         }
     }
 
+    @PostMapping(value = "/auto-login", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity autoLogin(@RequestBody User user) {
+        User tempUser = userRepository.findByEmail(user.getEmail());
+        if (tempUser == null) {
+            logger.log(Level.INFO, "Endpoint = /Auto-login - User not found");
+            return ResponseEntity.badRequest().body("Bad Credentials");
+        }
+        String passwordInDb = tempUser.getPassword();
+        String passwordToCompare = user.getPassword();
+        if (passwordInDb.equals(passwordToCompare)) {
+            long currentTimeMillis = System.currentTimeMillis();
+            return ResponseEntity.ok().body(Jwts.builder()
+                    .setSubject(user.getEmail())
+                    .claim("password", user.getPassword())
+                    .claim("roles", user.getRole())
+                    .setIssuedAt(new Date(currentTimeMillis))
+                    .setExpiration(new Date(currentTimeMillis + 604800000))
+                    .signWith(SignatureAlgorithm.HS256, MyConstants.TOKEN_SIGN_KEY)
+                    .compact());
+        } else {
+            logger.log(Level.INFO, "Endpoint = /login -Wrong password");
+            return ResponseEntity.badRequest().body("Bad Credentials");
+
+        }
+    }
+
+
     @PostMapping(value = "/addUser", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity addUser(@RequestBody User user) {
         logger.log(Level.INFO, "Endpoint = /addUser - " + user.toString());
