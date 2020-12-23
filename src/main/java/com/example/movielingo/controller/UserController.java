@@ -46,8 +46,11 @@ public class UserController {
         else{
 
             Claims claims = (Claims) servletRequest.getAttribute("claims");
+
+            System.out.println("Token = "+ claims);
             String passwordFromToken =  claims.get("password").toString();
             String emailFromToken = claims.getSubject();
+            System.out.println(emailFromToken);
             User tempUser = userRepository.findByEmail(emailFromToken);
             if (tempUser == null) {
                 logger.log(Level.INFO, "Endpoint = /Auto-Login - User not found");
@@ -68,6 +71,31 @@ public class UserController {
         }
 
 
+    }
+
+    @PostMapping(value = "/user-information",consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity userInformaion(ServletRequest servletRequest){
+        HttpServletRequest httpServletRequest = (HttpServletRequest) servletRequest;
+
+        Claims claims = (Claims) servletRequest.getAttribute("claims");
+        System.out.println(claims);
+        String passwordFromToken =  claims.get("password").toString();
+        String emailFromToken = claims.getSubject();
+        User tempUser = userRepository.findByEmail(emailFromToken);
+        if (tempUser == null) {
+            logger.log(Level.INFO, "Endpoint = /User information - User not found");
+            return ResponseEntity.badRequest().body("User not found");
+        }
+        String passwordInDb = tempUser.getPassword();
+
+        if (passwordInDb.equals(passwordFromToken)) {
+
+            return ResponseEntity.ok().body(tempUser);
+        } else {
+            logger.log(Level.INFO, "Endpoint = /User information - Wrong password");
+            return ResponseEntity.badRequest().body("Bad Credentials");
+
+        }
     }
 
 }

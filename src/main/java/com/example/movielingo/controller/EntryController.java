@@ -4,6 +4,7 @@ package com.example.movielingo.controller;
 import com.example.movielingo.configuration.MyConstants;
 import com.example.movielingo.model.User;
 import com.example.movielingo.respository.UserRepository;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import javax.persistence.NonUniqueResultException;
+import javax.servlet.ServletRequest;
+import javax.servlet.http.HttpServletRequest;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -33,32 +36,6 @@ public class EntryController {
     }
 
     @PostMapping(value = "/login", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity login(@RequestBody User user) {
-        User tempUser = userRepository.findByEmail(user.getEmail());
-        if (tempUser == null) {
-            logger.log(Level.INFO, "Endpoint = /login - User not found");
-            return ResponseEntity.badRequest().body("Bad Credentials");
-        }
-        String passwordInDb = tempUser.getPassword();
-        String passwordToCompare = user.getPassword();
-        if (passwordInDb.equals(passwordToCompare)) {
-            long currentTimeMillis = System.currentTimeMillis();
-            return ResponseEntity.ok().body(Jwts.builder()
-                    .setSubject(user.getEmail())
-                    .claim("password", user.getPassword())
-                    .claim("roles", user.getRole())
-                    .setIssuedAt(new Date(currentTimeMillis))
-                    .setExpiration(new Date(currentTimeMillis + 2000))
-                    .signWith(SignatureAlgorithm.HS256, MyConstants.TOKEN_SIGN_KEY)
-                    .compact());
-        } else {
-            logger.log(Level.INFO, "Endpoint = /login -Wrong password");
-            return ResponseEntity.badRequest().body("Bad Credentials");
-
-        }
-    }
-
-    @PostMapping(value = "/auto-login", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity autoLogin(@RequestBody User user) {
         User tempUser = userRepository.findByEmail(user.getEmail());
         if (tempUser == null) {
@@ -83,6 +60,8 @@ public class EntryController {
 
         }
     }
+
+
 
 
     @PostMapping(value = "/addUser", consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -115,6 +94,9 @@ public class EntryController {
             return ResponseEntity.badRequest().body("Email already registered");
         }
     }
+
+
+
 
 
     @RequestMapping("/account-confirmation/{email}")

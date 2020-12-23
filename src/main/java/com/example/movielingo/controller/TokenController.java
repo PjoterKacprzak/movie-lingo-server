@@ -22,4 +22,10 @@ public class TokenController {
         return validation;
     }
 
+
+    static String refreshToken(){
+
+        return null;
+    }
+
 }
