@@ -14,13 +14,16 @@ public class JwtFilter implements Filter {
         HttpServletRequest httpServletRequest = (HttpServletRequest) servletRequest;
 
         String header = httpServletRequest.getHeader("authorization");
-        if(header == null ||header.startsWith("Bearer "))
+        if(header == null )
         {
             throw new ServerException(("Wrong or empty header"));
         }
+
         else
         {
-
+            if(header.startsWith("Bearer ")){
+                header = header.substring(7);
+            }
             try {
                 // String token = header.substring(7);
                 Claims claims = Jwts.parser().setSigningKey(MyConstants.TOKEN_SIGN_KEY).parseClaimsJws(header).getBody();

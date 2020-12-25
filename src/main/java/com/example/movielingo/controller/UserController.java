@@ -1,5 +1,6 @@
 package com.example.movielingo.controller;
 
+import com.example.movielingo.model.PasswordChange;
 import com.example.movielingo.model.User;
 import com.example.movielingo.respository.UserRepository;
 import io.jsonwebtoken.Claims;
@@ -97,6 +98,42 @@ public class UserController {
 
         }
     }
+
+    @PatchMapping(value = "/change-password",consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity changePassword(ServletRequest servletRequest, @RequestBody PasswordChange passwordChange){
+
+
+        System.out.println(passwordChange);
+        HttpServletRequest httpServletRequest = (HttpServletRequest) servletRequest;
+
+        Claims claims = (Claims) servletRequest.getAttribute("claims");
+        System.out.println(claims);
+        String passwordFromToken =  claims.get("password").toString();
+        String emailFromToken = claims.getSubject();
+        User tempUser = userRepository.findByEmail(emailFromToken);
+        if (tempUser == null) {
+            logger.log(Level.INFO, "Endpoint = /change-password - User not found");
+            return ResponseEntity.badRequest().body("User not found");
+        }
+        else if(!tempUser.getPassword().equals(passwordChange.getOldPassword()))
+        {
+            logger.log(Level.INFO, "Endpoint = /change-password Old password is incorrect");
+            return ResponseEntity.badRequest().body("Old password is incorrect");
+        }
+        String passwordInDb = tempUser.getPassword();
+
+        if (passwordInDb.equals(passwordFromToken)) {
+
+            tempUser.setPassword(passwordChange.getNewPassword());
+            userRepository.save(tempUser);
+            return ResponseEntity.ok().body("Password Changed");
+        } else {
+            logger.log(Level.INFO, "Endpoint = /change-password - Wrong password");
+            return ResponseEntity.badRequest().body("Bad Credentials");
+
+        }
+    }
+
 
 }
 
