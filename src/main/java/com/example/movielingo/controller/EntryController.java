@@ -62,8 +62,6 @@ public class EntryController {
     }
 
 
-
-
     @PostMapping(value = "/addUser", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity addUser(@RequestBody User user) {
         logger.log(Level.INFO, "Endpoint = /addUser - " + user.toString());
@@ -94,8 +92,6 @@ public class EntryController {
             return ResponseEntity.badRequest().body("Email already registered");
         }
     }
-
-
 
 
 

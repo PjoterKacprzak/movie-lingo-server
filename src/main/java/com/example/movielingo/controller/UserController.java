@@ -2,6 +2,9 @@ package com.example.movielingo.controller;
 
 import com.example.movielingo.model.PasswordChange;
 import com.example.movielingo.model.User;
+import com.example.movielingo.model.UserFlashCard;
+
+import com.example.movielingo.respository.UserFlashCardRepository;
 import com.example.movielingo.respository.UserRepository;
 import io.jsonwebtoken.Claims;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +28,9 @@ public class UserController {
 
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private UserFlashCardRepository userFlashCardRepository;
+
 
     @RequestMapping("/getAll")
     public ResponseEntity getAllUsers()
@@ -73,7 +79,6 @@ public class UserController {
 
 
     }
-
     @PostMapping(value = "/user-information",consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity userInformaion(ServletRequest servletRequest){
         HttpServletRequest httpServletRequest = (HttpServletRequest) servletRequest;
@@ -134,6 +139,31 @@ public class UserController {
         }
     }
 
+    @PostMapping(value = "/new-flash-card")
+    public ResponseEntity newFlashCard(ServletRequest servletRequest,@RequestBody UserFlashCard userFlashCard)
+    {
+
+        Claims claims = (Claims) servletRequest.getAttribute("claims");
+
+        String emailFromToken = claims.getSubject();
+        userFlashCard.setEmail(emailFromToken);
+        userFlashCardRepository.save(userFlashCard);
+        System.out.println(userFlashCardRepository.findAll());
+
+        return  ResponseEntity.ok().body(userFlashCardRepository.save(userFlashCard));
+    }
+
+    @PostMapping(value ="/get-card-by-user" )
+    public ResponseEntity getCardsByUser(ServletRequest servletRequest)
+    {
+        Claims claims = (Claims) servletRequest.getAttribute("claims");
+
+        String emailFromToken = claims.getSubject();
+
+        System.out.println(userFlashCardRepository.findFlashCardByEmail(emailFromToken));
+
+        return ResponseEntity.ok().body(userFlashCardRepository.findFlashCardByEmail(emailFromToken));
+    }
 
 }
 

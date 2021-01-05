@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import javax.servlet.ServletRequest;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -17,10 +18,9 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 
 import java.net.URL;
-import java.util.List;
+
 import java.util.Locale;
 import java.util.logging.Logger;
-
 
 
 @Controller
@@ -30,21 +30,17 @@ public class LanguageTranslationController {
     private final static Logger logger = Logger.getLogger(LanguageTranslationController.class.getName());
 
 
-
-    @PostMapping(value = "/single-word-translation",consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity singleWordTranslation(@RequestBody SingleWordTranslation singleWordTranslation)
-    {
+    @PostMapping(value = "/single-word-translation", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity singleWordTranslation(@RequestBody SingleWordTranslation singleWordTranslation) {
         String sourceLang = singleWordTranslation.getSourceLanguage();
         String targetLang = singleWordTranslation.getTargetLanguage();
         String word = singleWordTranslation.getWord();
-        word = word.replace(" ","+");
+        word = word.replace(" ", "+");
         int responseCode;
-        try
-        {
+        try {
             URL url = new URL("https://translate.googleapis.com/translate_a/single?client=gtx&sl="
                     + sourceLang + "&tl=" + targetLang + "&dt=t&q=" + word);
 
-            System.out.println(url);
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
             con.setRequestMethod("GET");
             responseCode = con.getResponseCode();
@@ -64,22 +60,16 @@ public class LanguageTranslationController {
 
                 String responseString = response.toString();
 
-                cleanString(responseString);
-              return ResponseEntity.ok(cleanString(responseString));
 
-            }
-            else
-            {
+                return ResponseEntity.ok(cleanString(responseString));
+
+            } else {
                 return ResponseEntity.badRequest().body("cannot translate word");
             }
-        }
-        catch (MalformedURLException e)
-        {
+        } catch (MalformedURLException e) {
             logger.info("MalformedURLException");
 
-        }
-        catch (IOException e)
-        {
+        } catch (IOException e) {
             logger.info("IOException");
         }
 
@@ -89,43 +79,33 @@ public class LanguageTranslationController {
 
 
     @PostMapping(value = "/multiple-word-translation", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity multipleWordTranslation()
-    {
-             Translate translate = TranslateOptions.getDefaultInstance().getService();
-
-
-        Translation translation = translate.translate("cześć mam na imie piotr i jestem stundetem");
-        //translate.listSupportedLanguages();
-        System.out.printf("Translated Text:\n\t%s\n", translation.getTranslatedText());
-
-        return ResponseEntity.ok(translate);
-
-    }
-
-    @GetMapping(value = "/supported-languages")
-    public ResponseEntity supportedLanguages (){
+    public ResponseEntity multipleWordTranslation() {
 
         Translate translate = TranslateOptions.getDefaultInstance().getService();
-       return ResponseEntity.ok(translate.listSupportedLanguages());
+        Translation translation = translate.translate("cześć mam na imie piotr i jestem stundetem");
+        return ResponseEntity.ok(translate);
     }
 
 
-    public String cleanString(String word)
-    {
+
+    @GetMapping(value = "/supported-languages")
+    public ResponseEntity supportedLanguages() {
+
+        Translate translate = TranslateOptions.getDefaultInstance().getService();
+        return ResponseEntity.ok(translate.listSupportedLanguages());
+    }
 
 
-        word = word.replace('[',' ');
-        word = word.replace('"',' ');
+    public String cleanString(String word) {
 
+
+        word = word.replace('[', ' ');
+        word = word.replace('"', ' ');
         word = word.trim();
-
         String[] temporary = word.split(",");
-
-        word=temporary[0];
+        word = temporary[0];
         word = word.trim();
-
         word = word.toLowerCase(Locale.ROOT);
-
         return word;
     }
 
