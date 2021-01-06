@@ -153,6 +153,21 @@ public class UserController {
         return  ResponseEntity.ok().body(userFlashCardRepository.save(userFlashCard));
     }
 
+    @PatchMapping(value = "/edit-flash-card")
+    public ResponseEntity editFlashCard(ServletRequest servletRequest,@RequestBody UserFlashCard userFlashCard)
+    {
+
+        Claims claims = (Claims) servletRequest.getAttribute("claims");
+
+        String emailFromToken = claims.getSubject();
+        userFlashCard.setEmail(emailFromToken);
+        userFlashCardRepository.save(userFlashCard);
+
+
+        return  ResponseEntity.ok().body(userFlashCardRepository.save(userFlashCard));
+    }
+
+
     @GetMapping(value ="/get-card-by-user" )
     public ResponseEntity getCardsByUser(ServletRequest servletRequest)
     {
