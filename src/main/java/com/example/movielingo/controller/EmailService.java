@@ -17,8 +17,6 @@ import java.io.IOException;
 public class EmailService {
 
 
-
-
     static void sendVerificationMail(String email,String emailUsername,String emailPassword,String loginName)
     {
 

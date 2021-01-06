@@ -161,8 +161,9 @@ public class UserController {
 
         String emailFromToken = claims.getSubject();
         userFlashCard.setEmail(emailFromToken);
-        userFlashCardRepository.save(userFlashCard);
+        System.out.println(userFlashCard);
 
+        userFlashCardRepository.deleteById(userFlashCard.getId());
 
         return  ResponseEntity.ok().body(userFlashCardRepository.save(userFlashCard));
     }
