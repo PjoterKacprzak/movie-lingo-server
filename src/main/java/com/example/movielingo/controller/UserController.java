@@ -153,7 +153,7 @@ public class UserController {
         return  ResponseEntity.ok().body(userFlashCardRepository.save(userFlashCard));
     }
 
-    @PostMapping(value ="/get-card-by-user" )
+    @GetMapping(value ="/get-card-by-user" )
     public ResponseEntity getCardsByUser(ServletRequest servletRequest)
     {
         Claims claims = (Claims) servletRequest.getAttribute("claims");

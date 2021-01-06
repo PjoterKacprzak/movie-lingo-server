@@ -42,13 +42,7 @@ public class FlashCard {
 
 
 
-    @Override
-    public String toString() {
-        return "FlashCard{" +
-                "sourceWord='" + sourceWord + '\'' +
-                ", translatedWord='" + translatedWord + '\'' +
-                '}';
-    }
+
 
     public Long getFlashCardId() {
         return id;
@@ -64,5 +58,14 @@ public class FlashCard {
 
     public void setTranslatedWord(String translatedWord) {
         this.translatedWord = translatedWord;
+    }
+
+    @Override
+    public String toString() {
+        return "FlashCard{" +
+                "id=" + id +
+                ", sourceWord='" + sourceWord + '\'' +
+                ", translatedWord='" + translatedWord + '\'' +
+                '}';
     }
 }
