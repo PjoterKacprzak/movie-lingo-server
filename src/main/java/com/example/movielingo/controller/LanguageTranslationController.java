@@ -82,6 +82,7 @@ public class LanguageTranslationController {
     public ResponseEntity multipleWordTranslation() {
 
         Translate translate = TranslateOptions.getDefaultInstance().getService();
+
         Translation translation = translate.translate("cześć mam na imie piotr i jestem stundetem");
         return ResponseEntity.ok(translate);
     }

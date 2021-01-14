@@ -26,7 +26,7 @@ public class JwtFilter implements Filter {
             }
             try {
                 // String token = header.substring(7);
-                Claims claims = Jwts.parser().setSigningKey(MyConstants.TOKEN_SIGN_KEY).parseClaimsJws(header).getBody();
+                Claims claims = Jwts.parser().setSigningKey(MyConstants.getTokenSignKey()).parseClaimsJws(header).getBody();
                 System.out.println(claims);
                 servletRequest.setAttribute("claims", claims);
             }

@@ -5,6 +5,9 @@ import com.example.movielingo.configuration.MyConstants;
 import com.github.wtekiela.opensub4j.api.OpenSubtitlesClient;
 import com.github.wtekiela.opensub4j.impl.OpenSubtitlesClientImpl;
 import com.github.wtekiela.opensub4j.response.*;
+import com.google.cloud.translate.Translate;
+import com.google.cloud.translate.TranslateOptions;
+import com.google.cloud.translate.Translation;
 import org.apache.xmlrpc.XmlRpcException;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -63,7 +66,13 @@ public class SubtitleController {
 
             logger.info(finalListOfWords.toString());
 
-            return ResponseEntity.ok(finalSubtitlesString);
+            Translate translate = TranslateOptions.getDefaultInstance().getService();
+            Translation translation = translate.translate(finalListOfWords.toString());
+
+           // Translation translation1 = translate.translate(finalListOfWords,TranslateOptions.)
+            System.out.println(translation);
+
+            return ResponseEntity.ok(finalListOfWords);
         }
 
         return ResponseEntity.badRequest().body("Endpoint - new-subtitle : Connection failed");
@@ -74,7 +83,7 @@ public class SubtitleController {
         List<SubtitleInfo> properSubtitle;
         String downloadSubtitleUrl;
         //ListResponse<SubtitleInfo> listOfSubtitles = osClient.searchSubtitles("eng", "Hercules","1","1");
-        listOfSubtitles = osClient.searchSubtitles("eng", "1856101");
+        listOfSubtitles = osClient.searchSubtitles("pol", "1856101");
         properSubtitle = listOfSubtitles.getData();
         downloadSubtitleUrl = properSubtitle.get(0).getDownloadLink();
         downloadSubtitleUrl = downloadSubtitleUrl.replace(".gz", ".srt");
@@ -88,7 +97,11 @@ public class SubtitleController {
         string = string.replace(". ", " ");
         string = string.toLowerCase(Locale.ROOT);
         for (int iterator = 0; iterator < string.length(); iterator++) {
-            if (string.charAt(iterator) >= 97 && string.charAt(iterator) <= 122) {
+            if (string.charAt(iterator) >= 97 && string.charAt(iterator) <= 122
+                    ||string.charAt(iterator)=='ś'||string.charAt(iterator)=='ć'||string.charAt(iterator)=='ź'
+                        ||string.charAt(iterator)=='ż'||string.charAt(iterator)=='ó'
+                    ||string.charAt(iterator)=='ó'||string.charAt(iterator)=='ą'||string.charAt(iterator)=='ę'
+                    ||string.charAt(iterator)=='ł'||string.charAt(iterator)=='ś'||string.charAt(iterator)=='ś') {
 
             } else {
                 string = replaceChar(string, ' ', iterator);

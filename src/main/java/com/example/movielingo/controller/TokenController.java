@@ -14,7 +14,7 @@ public class TokenController {
 
         boolean validation = false;
         try {
-            Jwts.parser().setSigningKey(MyConstants.TOKEN_SIGN_KEY).parseClaimsJws(token).getBody().getSubject();
+            Jwts.parser().setSigningKey(MyConstants.getTokenSignKey()).parseClaimsJws(token).getBody().getSubject();
             validation = true;
         } catch (SignatureException e) {
             Logger.getLogger(TokenController.class.getName()).log(Level.INFO,"Token Expired");

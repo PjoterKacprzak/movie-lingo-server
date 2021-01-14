@@ -22,9 +22,9 @@ public class ApiConfiguration{
     @Bean
     public DataSource getDataSource() {
         DataSourceBuilder dataSourceBuilder = DataSourceBuilder.create();
-        dataSourceBuilder.url(MyConstants.DATABASE_URL);
-        dataSourceBuilder.username(MyConstants.DATABASE_USERNAME);
-        dataSourceBuilder.password(MyConstants.DATABASE_PASSWORD);
+        dataSourceBuilder.url(MyConstants.getDatabaseUrl());
+        dataSourceBuilder.username(MyConstants.getDatabaseUsername());
+        dataSourceBuilder.password(MyConstants.getDatabasePassword());
         return dataSourceBuilder.build();
     }
 

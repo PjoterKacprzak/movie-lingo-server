@@ -52,7 +52,7 @@ public class EntryController {
                     .claim("roles", user.getRole())
                     .setIssuedAt(new Date(currentTimeMillis))
                     .setExpiration(new Date(currentTimeMillis + 604800000))
-                    .signWith(SignatureAlgorithm.HS256, MyConstants.TOKEN_SIGN_KEY)
+                    .signWith(SignatureAlgorithm.HS256, MyConstants.getTokenSignKey())
                     .compact());
         } else {
             logger.log(Level.INFO, "Endpoint = /login -Wrong password");
@@ -66,7 +66,7 @@ public class EntryController {
     public ResponseEntity addUser(@RequestBody User user) {
         logger.log(Level.INFO, "Endpoint = /addUser - " + user.toString());
         try {
-            EmailService.sendVerificationMail(user.getEmail(),MyConstants.EMAIL_SERVICE_USERNAME,MyConstants.EMAIL_SERVICE_PASSWORD,user.getLoginName());
+            EmailService.sendVerificationMail(user.getEmail(),MyConstants.getEmailServiceUsername(),MyConstants.getEmailServicePassword(),user.getLoginName());
 
             if (!(userRepository.findByEmail(user.getEmail()) instanceof User)) {
                 if(!(userRepository.findByLogin(user.getLoginName()) instanceof User))
