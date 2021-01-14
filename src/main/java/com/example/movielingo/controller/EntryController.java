@@ -62,11 +62,11 @@ public class EntryController {
     }
 
 
-    @PostMapping(value = "/addUser", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/new-user", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity addUser(@RequestBody User user) {
-        logger.log(Level.INFO, "Endpoint = /addUser - " + user.toString());
+        logger.log(Level.INFO, "Endpoint = /new-user - " + user.toString());
         try {
-            EmailService.sendVerificationMail(user.getEmail(),MyConstants.getEmailServiceUsername(),MyConstants.getEmailServicePassword(),user.getLoginName());
+
 
             if (!(userRepository.findByEmail(user.getEmail()) instanceof User)) {
                 if(!(userRepository.findByLogin(user.getLoginName()) instanceof User))
@@ -74,6 +74,7 @@ public class EntryController {
                         userRepository.save(user);
                        // EmailService.sendVerificationMail(user.getEmail(),MyConstants.EMAIL_SERVICE_USERNAME,MyConstants.EMAIL_SERVICE_PASSWORD,user.getLoginName());
                         logger.log(Level.INFO, "Endpoint = /addUser - User saved");
+                        EmailService.sendVerificationMail(user.getEmail(),MyConstants.getEmailServiceUsername(),MyConstants.getEmailServicePassword(),user.getLoginName());
                         return ResponseEntity.ok("User Saved");
                     }
                         else {

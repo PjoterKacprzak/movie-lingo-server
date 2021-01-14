@@ -21,12 +21,16 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String name;
+//    private String name;
+//
+//    @Column(name = "last_name")
+//    private String lastName;
 
-    @Column(name = "last_name")
-    private String lastName;
 
     private String email;
+
+    @Column(name = "login_name")
+    private String loginName;
 
     private String password;
 
@@ -44,8 +48,7 @@ public class User {
     @Column(name = "is_active")
     private boolean isActive;
 
-    @Column(name = "login_name")
-    private String loginName;
+
 
 
 
@@ -57,21 +60,21 @@ public class User {
         this.id = id;
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
-
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
+//    public String getName() {
+//        return name;
+//    }
+//
+//    public void setName(String name) {
+//        this.name = name;
+//    }
+//
+//    public String getLastName() {
+//        return lastName;
+//    }
+//
+//    public void setLastName(String lastName) {
+//        this.lastName = lastName;
+//    }
 
     public String getEmail() {
         return email;
@@ -129,20 +132,19 @@ public class User {
 
     public void setLoginName(String loginName) { this.loginName = loginName; }
 
+
     @Override
     public String toString() {
         return "User{" +
                 "id=" + id +
-                ", name='" + name + '\'' +
-                ", lastName='" + lastName + '\'' +
                 ", email='" + email + '\'' +
+                ", loginName='" + loginName + '\'' +
                 ", password='" + password + '\'' +
                 ", profilePhoto='" + profilePhoto + '\'' +
                 ", createdAt='" + createdAt + '\'' +
                 ", telephoneNumber='" + telephoneNumber + '\'' +
                 ", role='" + role + '\'' +
                 ", isActive=" + isActive +
-                ", loginName='" + loginName + '\'' +
                 '}';
     }
 }
