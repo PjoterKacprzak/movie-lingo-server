@@ -2,6 +2,7 @@ package com.example.movielingo.controller;
 
 
 import com.example.movielingo.configuration.MyConstants;
+import com.example.movielingo.model.FlashCard;
 import com.example.movielingo.model.MovieFlashCard;
 import com.example.movielingo.model.WordFrequency;
 
@@ -34,6 +35,8 @@ import java.util.*;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.sql.Connection;
+import java.util.stream.IntStream;
+
 @RestController
 @RequestMapping("/subtitle")
 public class SubtitleController {
@@ -45,11 +48,11 @@ public class SubtitleController {
     private final static Logger logger = Logger.getLogger(SubtitleController.class.getName());
 
 
-    @PostMapping(value = "/test",produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/test", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity test() throws IOException {
 
-       //List<WordFrequency> lists=  parseTxtToJson();
-       // wordFrequencyRepository.save(lists);
+        //List<WordFrequency> lists=  parseTxtToJson();
+        // wordFrequencyRepository.save(lists);
         insertDataToDb();
         return null;
     }
@@ -98,50 +101,67 @@ public class SubtitleController {
 
             List<WordFrequency> listOfWordsWithFrequency = fetchListOfWordFrequencyList();
 
-
             //delete unwanted words/chars
-            List<String> finalListOfWords;
+            List<FlashCard> finalListOfWords;
             finalListOfWords = parseSubtitle(finalSubtitlesString);
-
-
+            List<FlashCard> newList = new ArrayList<>();
             logger.info(String.valueOf(finalListOfWords.size()));
-            int temp;
             //delete wrong words
-            for(WordFrequency wordFrequency : listOfWordsWithFrequency)
-            {
-                temp = finalListOfWords.lastIndexOf(wordFrequency.getWord());
-                if(wordFrequency.getFrequencyValue()<=50  && temp!=-1)
-                {
-                    finalListOfWords.remove(temp);
+            for (int iterator = 0; iterator < finalListOfWords.size(); iterator++) {
+
+                int finalIterator = iterator;
+                int index = IntStream.range(0, listOfWordsWithFrequency.size())
+                        .filter(i -> listOfWordsWithFrequency.get(i).getWord().equals(finalListOfWords.get(finalIterator).getSourceWord()))
+                        .findFirst()
+                        .orElse(-1);
+                if (index != -1) {
+                    if (listOfWordsWithFrequency.get(index).getFrequencyValue() <= 50) {
+
+                        finalListOfWords.remove(iterator);
+                        iterator++;
+                    } else {
+                        finalListOfWords.get(iterator).setSourceWordFrequencyValue(listOfWordsWithFrequency.get(index).getFrequencyValue().intValue());
+                        newList.add(finalListOfWords.get(iterator));
+                    }
+
                 }
             }
 
-            logger.info(String.valueOf(finalListOfWords.size()));
+            //System.out.println(newList);
 
-                //Translate user words
+            //Translate user words
             Translate translate = TranslateOptions.getDefaultInstance().getService();
 
-           // System.out.println(finalListOfWords.toString().replace(", ","| "));
-            Translation translation = translate.translate(finalListOfWords.toString().replace(", ","| "));
+            // System.out.println(finalListOfWords.toString().replace(", ","| "));
 
-            System.out.println(translation);
+            String stringOfWords ="" ;
 
+            for(FlashCard flashCard : newList)
+            {
+                stringOfWords = stringOfWords.concat(flashCard.getSourceWord().concat("| "));
+            }
+
+            //System.out.println(stringOfWords);
+            //Translation translation = translate.translate(newList.toString().replace(", ", "| "));
+
+            Translation translation = translate.translate(stringOfWords);
+
+            //System.out.println(translation);
 
 
             //parse to list of words (translated words)
-            List<String>translatedText;
+            List<String> translatedText;
 
             String temporaryString = translation.toString();
             //translatedText = Arrays.asList(translation.getTranslatedText().split(" "));
-            translatedText = Arrays.asList(temporaryString.split("\\|"));
-            //System.out.println(translatedText);
-            //System.out.println(translatedText);
+            translatedText = Arrays.asList(temporaryString.split("\\| "));
+           // System.out.println(translatedText);
 
 
 
             //Collection<String>translatedTextCollection = Arrays.asList(translatedText)
 
-            List<WordFrequency> finalWordFrequencyList= new ArrayList<>();
+            List<WordFrequency> finalWordFrequencyList = new ArrayList<>();
 //            for(String s : translatedText)
 //            {
 //                for (WordFrequency wordFrequency : listOfWordsWithFrequency)
@@ -152,12 +172,23 @@ public class SubtitleController {
 //                    }
 //                }
 //            }
-            logger.info(String.valueOf(finalListOfWords.size()));
+            logger.info(String.valueOf(newList.size()));
             logger.info(String.valueOf(translatedText.size()));
-            for(int i=0;i<finalListOfWords.size();i++)
-            {
-                System.out.println(finalListOfWords.get(i) +"  "+ translatedText.get(i));
+
+            List<FlashCard>finalfinalListofFlashCard = new ArrayList<>();
+            for (int i = 0; i < newList.size(); i++) {
+               // System.out.println(newList.get(i) + "  " + translatedText.get(i));
+                newList.get(i).setTranslatedWord(translatedText.get(i));
+
+//                System.out.println(newList.get(i).getSourceWord()+ newList.get(i).getTranslatedWord());
+                if(!newList.get(i).getSourceWord().replaceAll("\\s+","").equals(newList.get(i).getTranslatedWord().replaceAll("\\s+","")))
+
+                finalfinalListofFlashCard.add(newList.get(i));
             }
+            finalfinalListofFlashCard.remove(0);
+            System.out.println(finalfinalListofFlashCard);
+            System.out.println(finalfinalListofFlashCard.size());
+
 
 //            logger.info(finalListOfWords.toString());
 //            logger.info(translatedText.toString());
@@ -196,16 +227,17 @@ public class SubtitleController {
         return downloadSubtitleUrl;
 
     }
-    List<String> parseSubtitle(String string) {
+
+    List<FlashCard> parseSubtitle(String string) {
         string = string.replace("</i>", "");
         string = string.replace(". ", " ");
         string = string.toLowerCase(Locale.ROOT);
         for (int iterator = 0; iterator < string.length(); iterator++) {
             if (string.charAt(iterator) >= 97 && string.charAt(iterator) <= 122
-                    ||string.charAt(iterator)=='ś'||string.charAt(iterator)=='ć'||string.charAt(iterator)=='ź'
-                        ||string.charAt(iterator)=='ż'||string.charAt(iterator)=='ó'
-                  ||string.charAt(iterator)=='ą'||string.charAt(iterator)=='ę'
-                    ||string.charAt(iterator)=='ł') {
+                    || string.charAt(iterator) == 'ś' || string.charAt(iterator) == 'ć' || string.charAt(iterator) == 'ź'
+                    || string.charAt(iterator) == 'ż' || string.charAt(iterator) == 'ó'
+                    || string.charAt(iterator) == 'ą' || string.charAt(iterator) == 'ę'
+                    || string.charAt(iterator) == 'ł') {
 
             } else {
                 string = replaceChar(string, ' ', iterator);
@@ -214,15 +246,7 @@ public class SubtitleController {
         string = string.trim().replaceAll(" +", " ");
         List<String> myList = new ArrayList<String>(Arrays.asList(string.split(" ")));
 
-//        System.out.println(myList);
-//
-//        System.out.println("test");
-//        System.out.println("test");
-//        System.out.println(myList.size());
-//        System.out.println("test");
-//        System.out.println("test");
-
-
+        List<FlashCard> temporaryFlashCards = new ArrayList<>();
         List<String> listWithoutDuplicates = myList.stream()
                 .distinct()
                 .collect(Collectors.toList());
@@ -231,20 +255,24 @@ public class SubtitleController {
         for (int iterator = 0; iterator < listWithoutDuplicates.size(); iterator++) {
             if (listWithoutDuplicates.get(iterator).length() < 3) {
                 listWithoutDuplicates.remove(iterator);
+            } else {
+                temporaryFlashCards.add(new FlashCard(listWithoutDuplicates.get(iterator), "",0));
             }
         }
-         System.out.println(listWithoutDuplicates.size());
-        Collections.sort(listWithoutDuplicates);
+        System.out.println(listWithoutDuplicates.size());
+       // Collections.sort(temporaryFlashCards);
         //logger.info(listWithoutDuplicates.toString());
 
 
-        return listWithoutDuplicates;
+        return temporaryFlashCards;
     }
+
     public String replaceChar(String str, char ch, int index) {
         return str.substring(0, index) + ch + str.substring(index + 1);
     }
+
     List<WordFrequency> fetchListOfWordFrequencyList() throws IOException {
-        List<WordFrequency>listOfWords = new ArrayList<>();
+        List<WordFrequency> listOfWords = new ArrayList<>();
         String[] parts;
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         //FileWriter csvWriter = new FileWriter("C:\\Users\\Piotr Kacprzak\\Desktop\\new.csv");
@@ -255,13 +283,13 @@ public class SubtitleController {
         try {
             File myObj = new File("C:\\Users\\Piotr Kacprzak\\Desktop\\pl_full.txt");
 
-           // String json = Json.createObjectBuilder().
+            // String json = Json.createObjectBuilder().
             Scanner myReader = new Scanner(myObj);
             while (myReader.hasNextLine()) {
                 String data = myReader.nextLine();
                 parts = data.split(" ");
-                listOfWords.add(new WordFrequency(parts[0],Long.parseLong(parts[1])));
-              //  csvWriter.append(parts[0]);
+                listOfWords.add(new WordFrequency(parts[0], Long.parseLong(parts[1])));
+                //  csvWriter.append(parts[0]);
 //                csvWriter.append(",");
 //                csvWriter.append(parts[1]);
 //                csvWriter.append("\n");
@@ -269,14 +297,14 @@ public class SubtitleController {
 //               // sampleObject.put("id", id);
 //                sampleObject.put("word", parts[0]);
 //                sampleObject.put("word_frequency", parts[1]);
-               // map.put(parts[0],Long.parseLong(parts[1]));
+                // map.put(parts[0],Long.parseLong(parts[1]));
 
-               // jsonArray.add(sampleObject);
-               // listOfWords.add(new WordFrequency(parts[0],Long.valueOf(parts[1])));
-               // System.out.println(Arrays.toString(parts));
+                // jsonArray.add(sampleObject);
+                // listOfWords.add(new WordFrequency(parts[0],Long.valueOf(parts[1])));
+                // System.out.println(Arrays.toString(parts));
 
             }
-           // String json = gson.toJson(listOfWords);
+            // String json = gson.toJson(listOfWords);
             //JSONObject jsonMap = new JSONObject(map);
 //            csvWriter.flush();
 //            csvWriter.close();
@@ -288,17 +316,18 @@ public class SubtitleController {
 //            file.close();
 //            myReader.close();
             System.out.println("done");
-            return  listOfWords;
+            return listOfWords;
 
         } catch (FileNotFoundException e) {
             System.out.println("An error occurred.");
             e.printStackTrace();
         }
-        return  listOfWords;
+        return listOfWords;
     }
+
     List<WordFrequency> insertDataToDb() {
 
-        List<WordFrequency>listOfWords = new ArrayList<>();
+        List<WordFrequency> listOfWords = new ArrayList<>();
         String[] parts;
 
 
@@ -313,7 +342,7 @@ public class SubtitleController {
                 String data = myReader.nextLine();
                 parts = data.split(" ");
                 //wordFrequencyRepository.save(new WordFrequency(parts[0],Long.parseLong(parts[1])));
-                listOfWords.add(new WordFrequency(parts[0],Long.parseLong(parts[1])));
+                listOfWords.add(new WordFrequency(parts[0], Long.parseLong(parts[1])));
 
             }
             System.out.println(listOfWords);
@@ -326,7 +355,7 @@ public class SubtitleController {
 //            file.close();
 //            myReader.close();
             System.out.println("done");
-                return listOfWords;
+            return listOfWords;
 
         } catch (FileNotFoundException e) {
             System.out.println("An error occurred.");
@@ -337,12 +366,13 @@ public class SubtitleController {
 
         return null;
     }
-    Map<String,Long> fetchWordFrequencyFromDataBase(List Us) {
-        Map<String,Long> userWordswithFrequency = new HashMap<String,Long>();
 
-            return userWordswithFrequency;
+    Map<String, Long> fetchWordFrequencyFromDataBase(List Us) {
+        Map<String, Long> userWordswithFrequency = new HashMap<String, Long>();
+
+        return userWordswithFrequency;
     }
 
-    }
+}
 
 
