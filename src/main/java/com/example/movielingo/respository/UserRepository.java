@@ -5,6 +5,10 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.transaction.annotation.Transactional;
 
+
+
+
+
 public interface UserRepository extends JpaRepository<User,Long> {
 
      @Query(value = "Select p from User p where p.email =?1")

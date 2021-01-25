@@ -18,6 +18,8 @@
         <java.version>1.8</java.version>
     </properties>
 
+
+
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -122,6 +124,13 @@
             <groupId>com.github.openstack4j.core</groupId>
             <artifactId>openstack4j-core</artifactId>
             <version>3.9</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/com.googlecode.json-simple/json-simple -->
+        <dependency>
+            <groupId>com.googlecode.json-simple</groupId>
+            <artifactId>json-simple</artifactId>
+            <version>1.1.1</version>
         </dependency>
 
 

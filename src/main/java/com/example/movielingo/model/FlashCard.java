@@ -24,6 +24,9 @@ public class FlashCard {
     @Column
    private String translatedWord;
 
+    @Column(name = "word_frequency_value")
+    private String sourceWordFrequencyValue;
+
 //    //WORKINGg
 //    @JoinColumn(name = "user_flash_card_id")
 //    @ManyToOne(cascade=CascadeType.ALL)
