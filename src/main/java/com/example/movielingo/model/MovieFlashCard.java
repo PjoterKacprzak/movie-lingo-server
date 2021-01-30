@@ -7,18 +7,10 @@ private boolean isMovie;
 private  int season;
 private  int episode;
 private String difficulty;
+private  String sourceLanguage;
+private  String targetLanguage;
 
 
-    @Override
-    public String toString() {
-        return "MovieFlashCard{" +
-                "movieName='" + movieName + '\'' +
-                ", isMovie=" + isMovie +
-                ", season=" + season +
-                ", episode=" + episode +
-                ", difficulty='" + difficulty + '\'' +
-                '}';
-    }
 
     public String getMovieName() {
         return movieName;
@@ -38,5 +30,38 @@ private String difficulty;
 
     public String getDifficulty() {
         return difficulty;
+    }
+
+    public void setMovieName(String movieName) {
+        this.movieName = movieName;
+    }
+
+    public String getSourceLanguage() {
+        return sourceLanguage;
+    }
+
+    public void setSourceLanguage(String sourceLanguage) {
+        this.sourceLanguage = sourceLanguage;
+    }
+
+    public String getTargetLanguage() {
+        return targetLanguage;
+    }
+
+    public void setTargetLanguage(String targetLanguage) {
+        this.targetLanguage = targetLanguage;
+    }
+
+    @Override
+    public String toString() {
+        return "MovieFlashCard{" +
+                "movieName='" + movieName + '\'' +
+                ", isMovie=" + isMovie +
+                ", season=" + season +
+                ", episode=" + episode +
+                ", difficulty='" + difficulty + '\'' +
+                ", sourceLanguage='" + sourceLanguage + '\'' +
+                ", targetLanguage='" + targetLanguage + '\'' +
+                '}';
     }
 }

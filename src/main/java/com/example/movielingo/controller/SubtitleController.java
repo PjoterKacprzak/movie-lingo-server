@@ -62,6 +62,7 @@ public class SubtitleController {
     public ResponseEntity getSubtitle(@RequestBody MovieFlashCard movieFlashCard) throws IOException, XmlRpcException {
 
         System.out.println(movieFlashCard);
+
 //        URL serverUrl = new URL("https", "api.opensubtitles.org", 443, "/xml-rpc");
 
 //        XmlRpcClientConfigImpl config = new XmlRpcClientConfigImpl();
@@ -80,15 +81,21 @@ public class SubtitleController {
         osClient = new OpenSubtitlesClientImpl(serverUrl);
         openSubtitleResponse = osClient.login("", "", "en", MyConstants.getOpensubtitlesName());
 
-        System.out.println(osClient.isLoggedIn());
-        System.out.println(openSubtitleResponse.getStatus());
+//       System.out.println(osClient.isLoggedIn());
+//       System.out.println(openSubtitleResponse.getStatus());
         if (osClient.isLoggedIn()) {
 
+            String subtitleUrlString="";
             String finalSubtitlesString = "";
 
+            subtitleUrlString = searchAndCreateSubtitleUrl(osClient, movieFlashCard.getMovieName(),movieFlashCard.getSourceLanguage());
+            if(subtitleUrlString.equals("")) {
+                logger.info("BadRequest - Cannot find subtitles");
+                return ResponseEntity.badRequest().body("Cannot find subtitles"); }
+
             //Download Subtitles
-            URL oracle = new URL(searchAndCreateSubtitleUrl(osClient, "NothingYet"));
-            BufferedReader in = new BufferedReader(new InputStreamReader(oracle.openStream()));
+            URL subtitleURL = new URL(subtitleUrlString);
+            BufferedReader in = new BufferedReader(new InputStreamReader(subtitleURL.openStream()));
 
             String inputLine;
             while ((inputLine = in.readLine()) != null) {
@@ -104,8 +111,9 @@ public class SubtitleController {
             //delete unwanted words/chars
             List<FlashCard> finalListOfWords;
             finalListOfWords = parseSubtitle(finalSubtitlesString);
+
             List<FlashCard> newList = new ArrayList<>();
-            logger.info(String.valueOf(finalListOfWords.size()));
+          //  logger.info(String.valueOf(finalListOfWords.size()));
             //delete wrong words
             for (int iterator = 0; iterator < finalListOfWords.size(); iterator++) {
 
@@ -130,7 +138,7 @@ public class SubtitleController {
             //System.out.println(newList);
 
             //Translate user words
-            Translate translate = TranslateOptions.getDefaultInstance().getService();
+
 
             // System.out.println(finalListOfWords.toString().replace(", ","| "));
 
@@ -143,8 +151,10 @@ public class SubtitleController {
 
             //System.out.println(stringOfWords);
             //Translation translation = translate.translate(newList.toString().replace(", ", "| "));
+            Translate translate = TranslateOptions.getDefaultInstance().getService();
 
-            Translation translation = translate.translate(stringOfWords);
+            Translation translation = translate.translate(stringOfWords,Translate.TranslateOption.sourceLanguage(movieFlashCard.getSourceLanguage()
+                  ),  Translate.TranslateOption.targetLanguage(movieFlashCard.getTargetLanguage()));
 
             //System.out.println(translation);
 
@@ -152,7 +162,7 @@ public class SubtitleController {
             //parse to list of words (translated words)
             List<String> translatedText;
 
-            String temporaryString = translation.toString();
+            String temporaryString = translation.toString().toLowerCase(Locale.ROOT);
             //translatedText = Arrays.asList(translation.getTranslatedText().split(" "));
             translatedText = Arrays.asList(temporaryString.split("\\| "));
            // System.out.println(translatedText);
@@ -172,22 +182,34 @@ public class SubtitleController {
 //                    }
 //                }
 //            }
-            logger.info(String.valueOf(newList.size()));
-            logger.info(String.valueOf(translatedText.size()));
+//            System.out.println(newList);
+//            System.out.println(translatedText);;
+//            logger.info(String.valueOf(newList.size()));
+//            logger.info(String.valueOf(translatedText.size()));
 
-            List<FlashCard>finalfinalListofFlashCard = new ArrayList<>();
-            for (int i = 0; i < newList.size(); i++) {
-               // System.out.println(newList.get(i) + "  " + translatedText.get(i));
-                newList.get(i).setTranslatedWord(translatedText.get(i));
+            try
+            {
+                List<FlashCard>finalFinalListOfFlashCard = new ArrayList<>();
+                for (int i = 0; i < newList.size(); i++) {
+                    //    System.out.println(newList.get(i) + "  " + translatedText.get(i));
+                    newList.get(i).setTranslatedWord(translatedText.get(i));
 
-//                System.out.println(newList.get(i).getSourceWord()+ newList.get(i).getTranslatedWord());
-                if(!newList.get(i).getSourceWord().replaceAll("\\s+","").equals(newList.get(i).getTranslatedWord().replaceAll("\\s+","")))
+                    //   System.out.println(newList.get(i).getSourceWord()+ newList.get(i).getTranslatedWord());
+                    if(!newList.get(i).getSourceWord().replaceAll("\\s+","").equals(newList.get(i).getTranslatedWord().replaceAll("\\s+","")))
 
-                finalfinalListofFlashCard.add(newList.get(i));
+                        finalFinalListOfFlashCard.add(newList.get(i));
+                }
+                finalFinalListOfFlashCard.remove(0);
+               // System.out.println(finalFinalListOfFlashCard);
+                return ResponseEntity.ok(finalFinalListOfFlashCard);
+            }catch (ArrayIndexOutOfBoundsException e)
+            {
+              //  e.printStackTrace();
+                return  ResponseEntity.badRequest().body("Cannot Parse subtitles");
             }
-            finalfinalListofFlashCard.remove(0);
-            System.out.println(finalfinalListofFlashCard);
-            System.out.println(finalfinalListofFlashCard.size());
+
+//            System.out.println(finalFinalListOfFlashCard);
+//            System.out.println(finalFinalListOfFlashCard.size());
 
 
 //            logger.info(finalListOfWords.toString());
@@ -208,29 +230,40 @@ public class SubtitleController {
 //                userTranslatedWordsWithFrequency.put(s,wordFreq);
 //            }
 
-            return ResponseEntity.ok(translatedText);
         }
 
         return ResponseEntity.badRequest().body("Endpoint - new-subtitle : Connection failed");
     }
 
-    String searchAndCreateSubtitleUrl(OpenSubtitlesClient osClient, String movieName) throws XmlRpcException {
+    String searchAndCreateSubtitleUrl(OpenSubtitlesClient osClient, String movieName, String sourceLanguage) throws XmlRpcException {
         ListResponse<SubtitleInfo> listOfSubtitles;
         List<SubtitleInfo> properSubtitle;
-        String downloadSubtitleUrl;
+        String downloadSubtitleUrl ="";
         //ListResponse<SubtitleInfo> listOfSubtitles = osClient.searchSubtitles("eng", "Hercules","1","1");
-        listOfSubtitles = osClient.searchSubtitles("pol", "0050083");
-        properSubtitle = listOfSubtitles.getData();
-        downloadSubtitleUrl = properSubtitle.get(0).getDownloadLink();
-        downloadSubtitleUrl = downloadSubtitleUrl.replace(".gz", ".srt");
+        listOfSubtitles = osClient.searchSubtitles(sourceLanguage, movieName);
 
-        return downloadSubtitleUrl;
+        System.out.println(listOfSubtitles);
+        properSubtitle = listOfSubtitles.getData();
+        if(properSubtitle.isEmpty())
+        {
+            return downloadSubtitleUrl;
+        }
+        else {
+            downloadSubtitleUrl = properSubtitle.get(0).getDownloadLink();
+            downloadSubtitleUrl = downloadSubtitleUrl.replace(".gz", ".srt");
+            return downloadSubtitleUrl;
+        }
+
+
+
 
     }
 
     List<FlashCard> parseSubtitle(String string) {
         string = string.replace("</i>", "");
+        string = string.replace("'", "");
         string = string.replace(". ", " ");
+
         string = string.toLowerCase(Locale.ROOT);
         for (int iterator = 0; iterator < string.length(); iterator++) {
             if (string.charAt(iterator) >= 97 && string.charAt(iterator) <= 122
@@ -315,7 +348,7 @@ public class SubtitleController {
 //            file.flush();
 //            file.close();
 //            myReader.close();
-            System.out.println("done");
+
             return listOfWords;
 
         } catch (FileNotFoundException e) {
@@ -354,7 +387,7 @@ public class SubtitleController {
 //            file.flush();
 //            file.close();
 //            myReader.close();
-            System.out.println("done");
+
             return listOfWords;
 
         } catch (FileNotFoundException e) {
